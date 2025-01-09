@@ -9,9 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, X } from "lucide-react"
 
-export default function ChatAndUpload() {
+export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: "'/api/chat'",
+    api: '/api/chat',
   })
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
 
