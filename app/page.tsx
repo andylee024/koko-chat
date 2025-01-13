@@ -1,15 +1,15 @@
-import Chat from "../components/Chat"
-import Sidebar from "../components/Sidebar"
+'use client';
 
-export default function StoryGatheringPage() {
-  return (
-    <div className="flex h-screen bg-gray-100">
-      <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6">Story Gathering for Baby Koko</h1>
-        <Chat />
-      </main>
-      <Sidebar />
-    </div>
-  )
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/pages/Welcome');
+  }, [router]);
+
+  return null;
 }
 

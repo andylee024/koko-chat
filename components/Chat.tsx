@@ -37,17 +37,21 @@ export default function Chat() {
   );
 }
 
+/*
+ * Modular components for main chat component
+ */
+
 function ChatHeader() {
   return (
     <h2 className="text-2xl font-semibold mb-4">Chat with Koko's interviewer</h2>
   );
 }
 
-interface ChatMessagesProps {
+function ChatMessages({
+  messages,
+}: {
   messages: { role: string; content: string }[];
-}
-
-function ChatMessages({ messages }: ChatMessagesProps) {
+}) {
   return (
     <ScrollArea className="flex-1 p-4 border border-neutral-200 rounded-md mb-4 dark:border-neutral-800">
       {messages.map((message, i) => (
@@ -65,13 +69,15 @@ function ChatMessages({ messages }: ChatMessagesProps) {
   );
 }
 
-interface ChatInputProps {
+function ChatInput({
+  input,
+  handleInputChange,
+  handleSubmit,
+}: {
   input: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-}
-
-function ChatInput({ input, handleInputChange, handleSubmit }: ChatInputProps) {
+}) {
   return (
     <form onSubmit={handleSubmit} className="flex space-x-2">
       <Input
