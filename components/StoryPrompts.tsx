@@ -68,7 +68,7 @@ const StoryPrompts: React.FC<StoryPromptsProps> = ({ onQuestionSelect }) => {
     <div className="w-80 border-l bg-gray-50 transition-all duration-300 ease-in-out">
       <div className="p-4 border-b">
         <h3 className="font-semibold text-purple-700">Story Prompts</h3>
-        <p className="text-sm text-gray-600">Choose a theme to explore</p>
+        <p className="text-sm text-gray-600">Choose a theme to get started </p>
       </div>
 
       <ScrollArea className="h-full">

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { useChat } from 'ai/react';
 import { LightbulbIcon, ImageIcon } from 'lucide-react';
 import StoryPrompts from './StoryPrompts';
-import { cn } from "@/lib/utils";
 
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat();
@@ -17,12 +16,17 @@ export default function Chat() {
   const handleQuestionSelect = async (question: string) => {
     // Construct the system message
     const userMessage = `I'd like to explore the question: "${question}"`;
+    const assistantMessage = `As an empathetic interviewer, help the user explore their question with 1-2 follow-up thoughts to help draw out a good story or anecdote.`;
 
     // Update the messages array with the new system message
     setMessages([...messages, {
       role: 'user',
       content: userMessage,
-      id: 'user-message',
+      id: 'user-message'
+    }, {
+      role: 'assistant',
+      content: assistantMessage,
+      id: 'assistant-message'
     }]);
 
     // Trigger the assistant to respond to the new context
@@ -39,9 +43,9 @@ export default function Chat() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b bg-purple-50">
-          <h2 className="text-xl font-semibold text-purple-700">Share Your Stories</h2>
+          <h2 className="text-xl font-semibold text-purple-700">Share your stories of Angel & Frank</h2>
           <p className="text-sm text-purple-600">
-            Chat and share your memories, or get inspired by the story prompts
+            Andy's AI interviewer who will help collect, organize our anecdotes into a children's book for Koko.
           </p>
         </div>
 
@@ -82,15 +86,6 @@ export default function Chat() {
               className="flex-grow text-lg"
             />
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowPrompts(!showPrompts)}
-                className="flex items-center gap-2"
-              >
-                <LightbulbIcon className="w-4 h-4" />
-                Need Ideas?
-              </Button>
               <Button
                 type="button"
                 variant="outline"
