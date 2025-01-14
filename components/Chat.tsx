@@ -11,15 +11,28 @@ import StoryPrompts from './StoryPrompts';
 import { cn } from "@/lib/utils";
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat();
   const [showPrompts, setShowPrompts] = useState(true);
 
-  const handleQuestionSelect = (question: string) => {
-    const form = new FormData();
-    form.append('message', question);
-    handleSubmit(new Event('submit', { cancelable: true }) as any, form);
-    setShowPrompts(false);
+  const handleQuestionSelect = async (question: string) => {
+    // Construct the system message
+    const userMessage = `I'd like to explore the question: "${question}"`;
+
+    // Update the messages array with the new system message
+    setMessages([...messages, {
+      role: 'user',
+      content: userMessage,
+      id: 'user-message',
+    }]);
+
+    // Trigger the assistant to respond to the new context
+    reload();
   };
+
+  
+  /* 
+  * React component to return 
+  */
 
   return (
     <Card className="flex h-[700px] overflow-hidden">
