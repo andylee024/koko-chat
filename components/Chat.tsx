@@ -9,10 +9,17 @@ import { useChat } from 'ai/react';
 import { LightbulbIcon, ImageIcon, UserIcon, BotIcon } from 'lucide-react';
 import StoryPrompts from './StoryPrompts';
 
+// Define the Message interface
+interface Message {
+  id: string;
+  role: 'system' | 'user' | 'assistant' | 'data'; // Define the allowed roles
+  content: string;
+}
+
 
 export default function Chat() {
 
-  const initialMessages = [
+  const assistantPrompt: Message[] = [
     {
       role: 'system',
       content: `
@@ -27,23 +34,25 @@ export default function Chat() {
       2. Aim to ask 1 question (at most 2 at a time)
       3. If the user is not able to answer, ask a follow-up question to help them answer
       4. Good questions make it easy for the user to think of good stories or qualities of Angel and Frank
+      5. Once you've gotten a great story, thank the user for their contribution and give them 2 options, share another story or exit anytime by closing link  
       `,
-      id: 'initial-1'
+      id: 'system-1'
     },
     {
       role: 'system',
       content: `
       - Introduce yourself as storybot, an AI assistant helping Andy build the childrens story
       - Tell the user about the project, who its for, what its about, and how they can help
-      - Tell the user if they get stuck, they can explore the themes on the side-panel 
+      - Tell the user the goal is to get a few good stories and images to help build the childrens story
+      - Tell the user that whenever they feel like they've shared enough stories and images, they can exit anytime by closing link  
       - Start by asking the user their relationship to Angel and Frank
       `,
-      id: 'initial-2'
+      id: 'system-2'
     }
   ];
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
-    initialMessages: initialMessages
+    initialMessages: assistantPrompt
   });
 
     // Use useEffect to trigger the first bot response
@@ -143,6 +152,7 @@ export default function Chat() {
               </Button>
             </div>
           </form>
+
         </div>
       </div>
 

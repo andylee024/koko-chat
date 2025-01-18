@@ -6,6 +6,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import Label from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+console.log('supabaseUrl', supabaseUrl);
+console.log('supabaseKey', supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 
 export default function WelcomePage() {
   const [name, setName] = useState('');
@@ -13,10 +21,21 @@ export default function WelcomePage() {
   const [phone, setPhone] = useState('');
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log({ name, relationship, phone });
-    router.push('/story_gathering');
+
+    // Save user information to Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ name, relationship, phone }]);
+
+    if (error) {
+      console.error('Error saving user info:', error);
+    } else {
+      console.log('User info saved:', data);
+      router.push('/story_gathering');
+    }
   };
 
   return (
