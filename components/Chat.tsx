@@ -8,6 +8,11 @@ import { Input } from "@/components/ui/input";
 import { useChat } from 'ai/react';
 import { LightbulbIcon, ImageIcon, UserIcon, BotIcon } from 'lucide-react';
 import StoryPrompts from './StoryPrompts';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Define the Message interface
 interface Message {
@@ -16,8 +21,37 @@ interface Message {
   content: string;
 }
 
+interface ChatProps {
+  userId: string;
+}
 
-export default function Chat() {
+export async function fetchUserInfo(userId: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user info:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export default function Chat({ userId }: ChatProps) {
+
+  const [userInfo, setUserInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      const data = await fetchUserInfo(userId);
+      setUserInfo(data);
+    };
+
+    getUserInfo();
+  }, [userId]);
 
   const assistantPrompt: Message[] = [
     {
@@ -41,11 +75,16 @@ export default function Chat() {
     {
       role: 'system',
       content: `
+      USER_DATA
+      - User name : ${userInfo?.name}
+      - User relationship to parents : ${userInfo?.relationship}
+
+      INSTRUCTIONS
+      - Say hello to the user by name
       - Introduce yourself as storybot, an AI assistant helping Andy build the childrens story
       - Tell the user about the project, who its for, what its about, and how they can help
-      - Tell the user the goal is to get a few good stories and images to help build the childrens story
       - Tell the user that whenever they feel like they've shared enough stories and images, they can exit anytime by closing link  
-      - Start by asking the user their relationship to Angel and Frank
+      - use newlines to break up the text
       `,
       id: 'system-2'
     }
@@ -96,6 +135,17 @@ export default function Chat() {
             Andy's AI interviewer who will help collect, organize our anecdotes into a children's book for Koko.
           </p>
         </div>
+        <div>
+
+  {userInfo ? (
+    <div>
+      <h1>Welcome, {userInfo.name}!</h1>
+      <p>Your relationship to Angel and Frank: {userInfo.relationship}</p>
+    </div>
+  ) : (
+    <p>Loading user information...</p>
+  )}
+</div>
 
         <ScrollArea className="flex-1 p-4">
           {messages.length === 0 && (
