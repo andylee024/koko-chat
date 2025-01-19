@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,6 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 console.log('supabaseUrl', supabaseUrl);
 console.log('supabaseKey', supabaseKey);
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 
 export default function WelcomePage() {
   const [name, setName] = useState('');
@@ -28,13 +27,15 @@ export default function WelcomePage() {
     // Save user information to Supabase
     const { data, error } = await supabase
       .from('users')
-      .insert([{ name, relationship, phone }]);
+      .insert([{ name, relationship, phone }])
+      .select();
 
     if (error) {
       console.error('Error saving user info:', error);
     } else {
+      const userId = data[0].id;
       console.log('User info saved:', data);
-      router.push('/story_gathering');
+      router.push(`/story_gathering?user_id=${userId}`);
     }
   };
 
