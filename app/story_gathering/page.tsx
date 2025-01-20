@@ -13,8 +13,11 @@ export default function StoryGatheringPage() {
     const user_id = searchParams.get('user_id');
     if (user_id) {
       setUserId(user_id);
+      console.log('search_params user_id', user_id);
+      console.log('userId set by search params', userId);
     }
   }, [searchParams]);
+
 
   return (
     <div className="flex h-screen bg-gray-100">

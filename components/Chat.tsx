@@ -25,11 +25,11 @@ interface ChatProps {
   userId: string;
 }
 
-export async function fetchUserInfo(userId: string) {
+async function fetchUserInfo(userId: string) {
   const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('id', userId)
+    .eq('user_id', userId)
     .single();
 
   if (error) {
@@ -37,23 +37,13 @@ export async function fetchUserInfo(userId: string) {
     return null;
   }
 
+  console.log('Fetch data from supabase:', data); 
   return data;
 }
 
-export default function Chat({ userId }: ChatProps) {
-
-  const [userInfo, setUserInfo] = useState<any>(null);
-
-  useEffect(() => {
-    const getUserInfo = async () => {
-      const data = await fetchUserInfo(userId);
-      setUserInfo(data);
-    };
-
-    getUserInfo();
-  }, [userId]);
-
-  const assistantPrompt: Message[] = [
+function createAssistantPrompt(userInfo: any): Message[] {
+  if (!userInfo) return [];
+  return [
     {
       role: 'system',
       content: `
@@ -89,17 +79,35 @@ export default function Chat({ userId }: ChatProps) {
       id: 'system-2'
     }
   ];
+}
+
+export default function Chat({ userId }: ChatProps) {
+
+  // validate userId - ok
+  console.log('Chat component received userId', userId);
+
+  // define state 
+  const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
+  const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
+  const [showPrompts, setShowPrompts] = useState(true);
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
     initialMessages: assistantPrompt
   });
 
-    // Use useEffect to trigger the first bot response
-    useEffect(() => {
-      reload(); // Trigger the assistant to generate a response to the last system message
-    }, [reload]);
+  // update state by userId
+  useEffect(() => {
+    const initializeWithUserId = async () => {
+      const userData = await fetchUserInfo(userId);
+      const prompt = createAssistantPrompt(userData);
 
-  const [showPrompts, setShowPrompts] = useState(true);
+      setUserInfo(userData);
+      setAssistantPrompt(prompt);
+      reload();
+    };
+
+    initializeWithUserId();
+  }, [userId, reload]);
 
   const handleQuestionSelect = async (question: string) => {
     // Construct the system message
@@ -121,10 +129,7 @@ export default function Chat({ userId }: ChatProps) {
     reload();
   };
   
-  /* 
-  * React component to return 
-  */
-
+  // React component to return 
   return (
     <Card className="flex h-[700px] overflow-hidden">
       {/* Main Chat Area */}
@@ -135,74 +140,63 @@ export default function Chat({ userId }: ChatProps) {
             Andy's AI interviewer who will help collect, organize our anecdotes into a children's book for Koko.
           </p>
         </div>
-        <div>
-
-  {userInfo ? (
-    <div>
-      <h1>Welcome, {userInfo.name}!</h1>
-      <p>Your relationship to Angel and Frank: {userInfo.relationship}</p>
-    </div>
-  ) : (
-    <p>Loading user information...</p>
-  )}
-</div>
-
-        <ScrollArea className="flex-1 p-4">
-          {messages.length === 0 && (
-            <div className="text-center text-gray-500 mt-8">
-              <p>Welcome! Choose a theme to get started, or just start chatting.</p>
-            </div>
-          )}
-          <div className="space-y-4">
-            {messages.filter(message => message.role !== 'system').map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
+        <div className="flex-1">
+          <ScrollArea className="flex-1 p-4">
+            {messages.length === 0 && (
+              <div className="text-center text-gray-500 mt-8">
+                <p>Welcome! Choose a theme to get started, or just start chatting.</p>
+              </div>
+            )}
+            <div className="space-y-4">
+              {messages.filter(message => message.role !== 'system').map((message, index) => (
                 <div
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2 max-w-[80%] ${
-                    message.role === 'user'
-                      ? 'bg-gray-200 text-black'
-                      : 'bg-gray-100 text-black'
-                  } shadow-md`}
+                  key={index}
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
                 >
-                  <div>
-                    {message.role === 'user' && (
-                      <div className="text-xs text-gray-500 mb-1">You</div>
-                    )}
-                    {message.role === 'assistant' && (
-                      <div className="text-xs text-gray-500 mb-1">AI Assistant</div>
-                    )}
-                    {message.content}
+                  <div
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 max-w-[80%] ${
+                      message.role === 'user'
+                        ? 'bg-gray-200 text-black'
+                        : 'bg-gray-100 text-black'
+                    } shadow-md`}
+                  >
+                    <div>
+                      {message.role === 'user' && (
+                        <div className="text-xs text-gray-500 mb-1">You</div>
+                      )}
+                      {message.role === 'assistant' && (
+                        <div className="text-xs text-gray-500 mb-1">AI Assistant</div>
+                      )}
+                      {message.content}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-
-        <div className="p-4 border-t bg-white">
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <Input
-              value={input}
-              onChange={handleInputChange}
-              placeholder="Type your story here..."
-              className="flex-grow text-lg"
-            />
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <ImageIcon className="w-4 h-4" />
-                Add Photo
-              </Button>
+              ))}
             </div>
-          </form>
+          </ScrollArea>
 
+          <div className="p-4 border-t bg-white">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <Input
+                value={input}
+                onChange={handleInputChange}
+                placeholder="Type your story here..."
+                className="flex-grow text-lg"
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Add Photo
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 

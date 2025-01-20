@@ -24,17 +24,18 @@ export default function WelcomePage() {
     e.preventDefault();
     console.log({ name, relationship, phone });
 
-    // Save user information to Supabase
+    // Save user information and get the user_id
     const { data, error } = await supabase
       .from('users')
       .insert([{ name, relationship, phone }])
-      .select();
+      .select('user_id')
+      .single();
 
     if (error) {
       console.error('Error saving user info:', error);
     } else {
-      const userId = data[0].id;
-      console.log('User info saved:', data);
+      const userId = data.user_id;
+      console.log('User info saved:', userId);
       router.push(`/story_gathering?user_id=${userId}`);
     }
   };
