@@ -36,22 +36,21 @@ async function fetchUserInfo(userId: string) {
     console.error('Error fetching user info:', error);
     return null;
   }
-
-  console.log('Fetch data from supabase:', data); 
   return data;
 }
 
 function createAssistantPrompt(userInfo: any): Message[] {
   if (!userInfo) return [];
-  return [
+
+  const prompt : Message[] = [
     {
       role: 'system',
       content: `
-      I am creating a children's story for my unborn niece (Koko) so that she can get to know her parents (Angel and Frank) better. 
-      For this project, I am collecting stories, anecdotes, and images of Angel and Frank from their friends and family. 
-      This will serve as the inspiration for the children's story that I'm giving to Koko.
-      You are an empathetic interviewer that will be talking to the friends and family of Angel and Frank. 
-      Your job is to help guide these friends and family in sharing stories and pictures that showcase who Angel and Frank are.
+      I am creating a children's story for my niece (Koko) so she can know her parents (Angel and Frank) better. 
+      For this project, I am collecting stories, anecdotes, and pictures of Angel and Frank from their friends and family. 
+      I plan to create a children's story for Koko that will be a collection of these stories and pictures.
+      You are an empathetic interviewer who will be talking to friends and family of Angel and Frank. 
+      Your job is to help guide them in sharing stories and pictures that showcase who Angel and Frank are.
 
       Notes
       1. Be encouraging and empathetic
@@ -65,9 +64,8 @@ function createAssistantPrompt(userInfo: any): Message[] {
     {
       role: 'system',
       content: `
-      USER_DATA
-      - User name : ${userInfo?.name}
-      - User relationship to parents : ${userInfo?.relationship}
+      - The user's name is ${userInfo.name}
+      - The user's relationship to parents is ${userInfo.relationship}
 
       INSTRUCTIONS
       - Say hello to the user by name
@@ -79,23 +77,22 @@ function createAssistantPrompt(userInfo: any): Message[] {
       id: 'system-2'
     }
   ];
+  return prompt;
 }
 
 export default function Chat({ userId }: ChatProps) {
 
-  // validate userId - ok
-  console.log('Chat component received userId', userId);
-
-  // define state 
+  // setup state variables
   const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
   const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
   const [showPrompts, setShowPrompts] = useState(true);
 
+  // setup state for chat
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
     initialMessages: assistantPrompt
   });
 
-  // update state by userId
+  // update component when userId changes
   useEffect(() => {
     const initializeWithUserId = async () => {
       const userData = await fetchUserInfo(userId);
@@ -103,18 +100,19 @@ export default function Chat({ userId }: ChatProps) {
 
       setUserInfo(userData);
       setAssistantPrompt(prompt);
+      setMessages(prompt);
       reload();
     };
 
     initializeWithUserId();
-  }, [userId, reload]);
+  }, [userId]);
 
+  // handle question selection
   const handleQuestionSelect = async (question: string) => {
-    // Construct the system message
+
     const userMessage = `I'd like to explore the question: "${question}"`;
     const systemMessage = `As an empathetic interviewer, help the user explore their question with 1-2 follow-up thoughts to help draw out a good story or anecdote.`;
 
-    // Update the messages array with the new system message
     setMessages([...messages, {
       role: 'user',
       content: userMessage,
