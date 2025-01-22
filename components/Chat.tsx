@@ -1,20 +1,19 @@
 "use client";
 
+import { ImageIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useChat } from 'ai/react';
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { useChat } from 'ai/react';
-import { LightbulbIcon, ImageIcon, UserIcon, BotIcon } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { createNewConversation, fetchUserInfo, saveConversation } from '@/utils/supabase_utils';
 import StoryPrompts from './StoryPrompts';
-import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Define the Message interface
+// Interfaces
 interface Message {
   id: string;
   role: 'system' | 'user' | 'assistant' | 'data'; // Define the allowed roles
@@ -25,65 +24,12 @@ interface ChatProps {
   userId: string;
 }
 
-async function fetchUserInfo(userId: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
-
-  if (error) {
-    console.error('Error fetching user info:', error);
-    return null;
-  }
-  return data;
-}
-
-function createAssistantPrompt(userInfo: any): Message[] {
-  if (!userInfo) return [];
-
-  const prompt : Message[] = [
-    {
-      role: 'system',
-      content: `
-      I am creating a children's story for my niece (Koko) so she can know her parents (Angel and Frank) better. 
-      For this project, I am collecting stories, anecdotes, and pictures of Angel and Frank from their friends and family. 
-      I plan to create a children's story for Koko that will be a collection of these stories and pictures.
-      You are an empathetic interviewer who will be talking to friends and family of Angel and Frank. 
-      Your job is to help guide them in sharing stories and pictures that showcase who Angel and Frank are.
-
-      Notes
-      1. Be encouraging and empathetic
-      2. Aim to ask 1 question (at most 2 at a time)
-      3. If the user is not able to answer, ask a follow-up question to help them answer
-      4. Good questions make it easy for the user to think of good stories or qualities of Angel and Frank
-      5. Once you've gotten a great story, thank the user for their contribution and give them 2 options, share another story or exit anytime by closing link  
-      `,
-      id: 'system-1'
-    },
-    {
-      role: 'system',
-      content: `
-      - The user's name is ${userInfo.name}
-      - The user's relationship to parents is ${userInfo.relationship}
-
-      INSTRUCTIONS
-      - Say hello to the user by name
-      - Introduce yourself as storybot, an AI assistant helping Andy build the childrens story
-      - Tell the user about the project, who its for, what its about, and how they can help
-      - Tell the user that whenever they feel like they've shared enough stories and images, they can exit anytime by closing link  
-      - use newlines to break up the text
-      `,
-      id: 'system-2'
-    }
-  ];
-  return prompt;
-}
-
 export default function Chat({ userId }: ChatProps) {
 
   // setup state variables
   const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
   const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
   const [showPrompts, setShowPrompts] = useState(true);
 
@@ -96,16 +42,27 @@ export default function Chat({ userId }: ChatProps) {
   useEffect(() => {
     const initializeWithUserId = async () => {
       const userData = await fetchUserInfo(userId);
+      const { conversation_id } = await createNewConversation(userId);
       const prompt = createAssistantPrompt(userData);
 
       setUserInfo(userData);
       setAssistantPrompt(prompt);
       setMessages(prompt);
+      setConversationId(conversation_id); // Set the conversationId state
+
       reload();
     };
 
     initializeWithUserId();
   }, [userId]);
+
+  // save conversation history to supabase
+  useEffect(() => {
+    if (conversationId) {
+      const conversationHistory = messages.map(message => `${message.role}: ${message.content}`).join('\n');
+      saveConversation(conversationId, conversationHistory);
+    }
+  }, [messages]);
 
   // handle question selection
   const handleQuestionSelect = async (question: string) => {
@@ -113,6 +70,7 @@ export default function Chat({ userId }: ChatProps) {
     const userMessage = `I'd like to explore the question: "${question}"`;
     const systemMessage = `As an empathetic interviewer, help the user explore their question with 1-2 follow-up thoughts to help draw out a good story or anecdote.`;
 
+    // Update the messages array with the new system message
     setMessages([...messages, {
       role: 'user',
       content: userMessage,
@@ -202,4 +160,46 @@ export default function Chat({ userId }: ChatProps) {
       {showPrompts && <StoryPrompts onQuestionSelect={handleQuestionSelect} />}
     </Card>
   );
+}
+
+// Utility Functions
+function createAssistantPrompt(userInfo: any): Message[] {
+  if (!userInfo) return [];
+
+  const prompt : Message[] = [
+    {
+      role: 'system',
+      content: `
+      I am creating a children's story for my niece (Koko) so she can know her parents (Angel and Frank) better. 
+      For this project, I am collecting stories, anecdotes, and pictures of Angel and Frank from their friends and family. 
+      I plan to create a children's story for Koko that will be a collection of these stories and pictures.
+      You are an empathetic interviewer who will be talking to friends and family of Angel and Frank. 
+      Your job is to help guide them in sharing stories and pictures that showcase who Angel and Frank are.
+
+      Notes
+      1. Be encouraging and empathetic
+      2. Aim to ask 1 question (at most 2 at a time)
+      3. If the user is not able to answer, ask a follow-up question to help them answer
+      4. Good questions make it easy for the user to think of good stories or qualities of Angel and Frank
+      5. Once you've gotten a great story, thank the user for their contribution and give them 2 options, share another story or exit anytime by closing link  
+      `,
+      id: 'system-1'
+    },
+    {
+      role: 'system',
+      content: `
+      - The user's name is ${userInfo.name}
+      - The user's relationship to parents is ${userInfo.relationship}
+
+      INSTRUCTIONS
+      - Say hello to the user by name
+      - Introduce yourself as storybot, an AI assistant helping Andy build the childrens story
+      - Tell the user about the project, who its for, what its about, and how they can help
+      - Tell the user that whenever they feel like they've shared enough stories and images, they can exit anytime by closing link  
+      - use newlines to break up the text
+      `,
+      id: 'system-2'
+    }
+  ];
+  return prompt;
 }
