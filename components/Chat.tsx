@@ -1,7 +1,7 @@
 "use client";
 
 import { ImageIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useChat } from 'ai/react';
 
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export default function Chat({ userId }: ChatProps) {
 
   const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
   const [showPrompts, setShowPrompts] = useState(true);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // setup state for chat
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
@@ -56,13 +57,44 @@ export default function Chat({ userId }: ChatProps) {
     initializeWithUserId();
   }, [userId]);
 
-  // save conversation history to supabase
+  // Add debugging logs to understand what's happening
   useEffect(() => {
+    console.log("Messages changed:", messages.length);
+    console.log("ScrollRef:", scrollRef.current);
+    
+    // Access the viewport of the ScrollArea
+    const viewport = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    console.log("Viewport:", viewport);
+
+    if (viewport) {
+      // Try smooth scrolling
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [messages]);
+
+  // useEffect (messages)
+  useEffect(() => {
+
+    // save conversation history to supabase
     if (conversationId) {
       const conversationHistory = messages.map(message => `${message.role}: ${message.content}`).join('\n');
       saveConversation(conversationId, conversationHistory);
     }
+
+    // smooth scroll to bottom of chat
+    if (scrollRef.current) {
+
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+
   }, [messages]);
+
 
   // handle question selection
   const handleQuestionSelect = async (question: string) => {
@@ -87,7 +119,7 @@ export default function Chat({ userId }: ChatProps) {
   
   // React component to return 
   return (
-    <Card className="flex h-[700px] overflow-hidden">
+    <Card className="flex h-[700px]">
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
         <div className="p-4 border-b bg-purple-50">
@@ -97,7 +129,7 @@ export default function Chat({ userId }: ChatProps) {
           </p>
         </div>
         <div className="flex-1 flex flex-col min-h-0">
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 && (
               <div className="text-center text-gray-500 mt-8">
                 <p>Welcome! Choose a theme to get started, or just start chatting.</p>
