@@ -26,20 +26,21 @@ interface ChatProps {
 
 export default function Chat({ userId }: ChatProps) {
 
-  // setup state variables
+  // setup state
   const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
   const [conversationId, setConversationId] = useState<string | null>(null);
-
   const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
   const [showPrompts, setShowPrompts] = useState(true);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // setup state for chat
+  // setup chatbot
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
     initialMessages: assistantPrompt
   });
 
-  // update component when userId changes
+  // setup UI state
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // First useEffect - update chatbot when userId changes
   useEffect(() => {
     const initializeWithUserId = async () => {
       const userData = await fetchUserInfo(userId);
@@ -57,17 +58,10 @@ export default function Chat({ userId }: ChatProps) {
     initializeWithUserId();
   }, [userId]);
 
-  // Add debugging logs to understand what's happening
+  // Second useEffect for scrolling
   useEffect(() => {
-    console.log("Messages changed:", messages.length);
-    console.log("ScrollRef:", scrollRef.current);
-    
-    // Access the viewport of the ScrollArea
     const viewport = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    console.log("Viewport:", viewport);
-
     if (viewport) {
-      // Try smooth scrolling
       viewport.scrollTo({
         top: viewport.scrollHeight,
         behavior: 'smooth'
@@ -75,24 +69,12 @@ export default function Chat({ userId }: ChatProps) {
     }
   }, [messages]);
 
-  // useEffect (messages)
+  // Third useEffect - save conversation history to supabase
   useEffect(() => {
-
-    // save conversation history to supabase
     if (conversationId) {
       const conversationHistory = messages.map(message => `${message.role}: ${message.content}`).join('\n');
       saveConversation(conversationId, conversationHistory);
     }
-
-    // smooth scroll to bottom of chat
-    if (scrollRef.current) {
-
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-
   }, [messages]);
 
 
