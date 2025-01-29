@@ -89,14 +89,14 @@ export default function Chat({ userId }: ChatProps) {
   return (
     <Card className="flex h-[700px] overflow-hidden">
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <div className="p-4 border-b bg-purple-50">
           <h2 className="text-xl font-semibold text-purple-700">Share your stories of Angel & Frank</h2>
           <p className="text-sm text-purple-600">
             Andy's AI interviewer who will help collect, organize our anecdotes into a children's book for Koko.
           </p>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col min-h-0">
           <ScrollArea className="flex-1 p-4">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 mt-8">
