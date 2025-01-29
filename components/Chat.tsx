@@ -26,13 +26,13 @@ interface ChatProps {
 
 export default function Chat({ userId }: ChatProps) {
 
-  // setup state
+  // setup user state
   const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
   const [conversationId, setConversationId] = useState<string | null>(null);
+
+  // setup chatbot state
   const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
   const [showPrompts, setShowPrompts] = useState(true);
-
-  // setup chatbot
   const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
     initialMessages: assistantPrompt
   });
@@ -51,14 +51,12 @@ export default function Chat({ userId }: ChatProps) {
       setAssistantPrompt(prompt);
       setMessages(prompt);
       setConversationId(conversation_id); // Set the conversationId state
-
       reload();
     };
-
     initializeWithUserId();
   }, [userId]);
 
-  // Second useEffect for scrolling
+  // Second useEffect - scroll to bottom of chat
   useEffect(() => {
     const viewport = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (viewport) {
