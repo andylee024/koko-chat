@@ -47,3 +47,29 @@ export async function createNewConversation(userId: string) {
   return data;
 }
 
+export async function uploadImageToStorage(file: File, userId: string) {
+  try {
+    // Create unique filename
+    const fileName = `${userId}-${Date.now()}-${file.name}`;
+    
+    // Upload to Supabase storage
+    const { data, error } = await supabaseClient
+      .storage
+      .from('story-images')
+      .upload(fileName, file);
+
+    if (error) throw error;
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabaseClient
+      .storage
+      .from('story-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+}
+

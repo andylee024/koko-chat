@@ -2,13 +2,14 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { ImageIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { uploadImageToStorage } from '@/utils/supabase_utils';
 
 interface ImagePreview {
   file: File;
   preview: string;
 }
 
-export default function StoryImageUpload() {
+export default function StoryImageUpload({ userId }: { userId: string }) {
   const [images, setImages] = useState<ImagePreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -39,9 +40,23 @@ export default function StoryImageUpload() {
   const handleSubmit = async () => {
     if (images.length === 0) return;
     setIsUploading(true);
-    // TODO: Add upload logic later
-    console.log('Images to upload:', images);
-    setIsUploading(false);
+
+    try {
+      // Test with first image
+      const imageUrl = await uploadImageToStorage(images[0].file, userId);
+      console.log('Uploaded image URL:', imageUrl);
+      
+      // Clear the preview
+      URL.revokeObjectURL(images[0].preview);
+      setImages([]);
+      
+      alert('Image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (

@@ -1,7 +1,6 @@
 'use client';
 
 import Chat from "../../components/Chat";
-import Sidebar from "../../components/Sidebar";
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import StoryImageUpload from "../../components/ImageDrop";
