@@ -18,6 +18,7 @@ export default function WelcomePage() {
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,6 +80,16 @@ export default function WelcomePage() {
                 type="tel" 
                 value={phone} 
                 onChange={(e) => setPhone(e.target.value)} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Contact Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
                 required 
               />
             </div>
