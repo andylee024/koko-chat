@@ -101,13 +101,6 @@ export default function Chat({ userId }: ChatProps) {
   return (
     <Card className="flex h-[700px]">
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="p-4 border-b bg-purple-50">
-          <h2 className="text-xl font-semibold text-purple-700">Share your stories of Angel & Frank</h2>
-          <p className="text-sm text-purple-600">
-            Andy's AI interviewer who will help collect, organize our anecdotes into a children's book for Koko.
-          </p>
-        </div>
         <div className="flex-1 flex flex-col min-h-0">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 && (
@@ -153,18 +146,7 @@ export default function Chat({ userId }: ChatProps) {
                 placeholder="Type your story here..."
                 className="flex-grow text-lg"
               />
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  Add Photo
-                </Button>
-              </div>
             </form>
-          </div>
         </div>
       </div>
 
