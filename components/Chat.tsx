@@ -22,9 +22,10 @@ interface Message {
 
 interface ChatProps {
   userId: string;
+  onStorySubmitted: () => void;
 }
 
-export default function Chat({ userId }: ChatProps) {
+export default function Chat({ userId, onStorySubmitted }: ChatProps) {
 
   // setup user state
   const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
@@ -33,8 +34,8 @@ export default function Chat({ userId }: ChatProps) {
   // setup chatbot state
   const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
   const [showPrompts, setShowPrompts] = useState(true);
-  const { messages, input, handleInputChange, handleSubmit, setMessages, reload } = useChat({
-    initialMessages: assistantPrompt
+  const { messages, input, handleInputChange, handleSubmit: handleChatSubmit, setMessages, reload } = useChat({
+    initialMessages: []
   });
 
   // setup UI state
@@ -75,6 +76,17 @@ export default function Chat({ userId }: ChatProps) {
     }
   }, [messages]);
 
+  // Wrap the chat submit handler to check for first message
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // If this is the first user message, trigger the checkbox
+    if (messages.filter(m => m.role === 'user').length === 0 && input.trim()) {
+      onStorySubmitted();
+    }
+    
+    handleChatSubmit(e);
+  };
 
   // handle question selection
   const handleQuestionSelect = async (question: string) => {
@@ -143,7 +155,7 @@ export default function Chat({ userId }: ChatProps) {
               <Input
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Type your story here..."
+                placeholder="Share your story here..."
                 className="flex-grow text-lg"
               />
             </form>

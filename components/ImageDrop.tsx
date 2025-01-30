@@ -9,17 +9,28 @@ interface ImagePreview {
   preview: string;
 }
 
-export default function StoryImageUpload({ userId }: { userId: string }) {
+interface StoryImageUploadProps {
+  userId: string;
+  onImagesUploaded: () => void;
+}
+
+export default function StoryImageUpload({ userId, onImagesUploaded }: StoryImageUploadProps) {
   const [images, setImages] = useState<ImagePreview[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newImages = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
     }));
-    setImages(prev => [...prev, ...newImages]);
-  }, []);
+    setImages(prev => {
+      const updatedImages = [...prev, ...newImages];
+      // Trigger checkbox when first image is added
+      if (prev.length === 0 && updatedImages.length > 0) {
+        onImagesUploaded();
+      }
+      return updatedImages;
+    });
+  }, [onImagesUploaded]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -35,28 +46,6 @@ export default function StoryImageUpload({ userId }: { userId: string }) {
       newImages.splice(index, 1);
       return newImages;
     });
-  };
-
-  const handleSubmit = async () => {
-    if (images.length === 0) return;
-    setIsUploading(true);
-
-    try {
-      // Test with first image
-      const imageUrl = await uploadImageToStorage(images[0].file, userId);
-      console.log('Uploaded image URL:', imageUrl);
-      
-      // Clear the preview
-      URL.revokeObjectURL(images[0].preview);
-      setImages([]);
-      
-      alert('Image uploaded successfully!');
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
   };
 
   return (
@@ -93,18 +82,6 @@ export default function StoryImageUpload({ userId }: { userId: string }) {
               </button>
             </div>
           ))}
-        </div>
-      )}
-
-      {images.length > 0 && (
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isUploading}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isUploading ? 'Uploading...' : `Upload ${images.length} Images`}
-          </Button>
         </div>
       )}
     </div>
