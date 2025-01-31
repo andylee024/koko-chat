@@ -1,28 +1,27 @@
 'use client';
 
+import { Suspense, useState, useEffect } from 'react';
 import Chat from "../../components/Chat";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import StoryImageUpload from "../../components/ImageDrop";
 import SubmissionPanel from "@/components/SubmissionPanel";
 
-export default function StoryGatheringPage() {
+// Create a component that uses searchParams
+function StoryGatheringContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
+  const userId = searchParams.get('user_id');
+  
   const [submissionStatus, setSubmissionStatus] = useState({
     hasStory: false,
     hasPhotos: false
   });
 
   useEffect(() => {
-    const user_id = searchParams.get('user_id');
-    if (user_id) {
-      setUserId(user_id);
-      console.log('search_params user_id', user_id);
-      console.log('userId set by search params', userId);
+    if (userId) {
+      console.log('search_params user_id', userId);
     }
-  }, [searchParams]);
+  }, [userId]);
 
   const handleFinalSubmit = () => {
     // You might want to do any final data saving here
@@ -42,15 +41,19 @@ export default function StoryGatheringPage() {
         {/* Story Chat Section */}
         <div className="bg-white rounded-xl shadow-sm mb-8">
           <div className="p-4 border-b bg-purple-50">
-            <h2 className="text-xl font-semibold mb-1 text-purple-700">1. Share your stories of Angel & Frank</h2>
+            <h2 className="text-xl font-semibold mb-1 text-purple-700">Share your stories of Angel & Frank</h2>
             <p className="text-sm text-purple-600">
-              Andy's AI interviewer will help collect your memories into a children's book for Koko.
+              {"Andy's AI interviewer will help collect your memories into a children's book for Koko."}
             </p>
           </div>
-          <Chat 
-            userId={userId} 
-            onStorySubmitted={() => setSubmissionStatus(prev => ({ ...prev, hasStory: true }))} 
-          />
+          {userId ? (
+            <Chat 
+              userId={userId} 
+              onStorySubmitted={() => setSubmissionStatus(prev => ({ ...prev, hasStory: true }))} 
+            />
+          ) : (
+            <div>Loading...</div>
+          )}
         </div>
 
         {/* Photo Upload Section */}
@@ -58,14 +61,18 @@ export default function StoryGatheringPage() {
           <div className="p-4 border-b bg-purple-50">
             <h2 className="text-xl font-semibold mb-1 text-purple-700">2. Share Photos of Angel and Frank</h2>
             <p className="text-sm text-purple-600">
-              Help us collect memorable photos for Koko's storybook.
+              Help us collect memorable photos for Kokos storybook.
             </p>
           </div>
           <div className="p-6">
-            <StoryImageUpload 
-              userId={userId} 
-              onImagesUploaded={() => setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }))} 
-            />
+            {userId ? (
+              <StoryImageUpload 
+                userId={userId}
+                onImagesUploaded={() => setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }))} 
+              />
+            ) : (
+              <div className="text-center py-4 text-gray-500">Loading image upload...</div>
+            )}
           </div>
         </div>
 
@@ -76,5 +83,24 @@ export default function StoryGatheringPage() {
         />
       </main>
     </div>
+  );
+}
+
+// Loading fallback component defined in the same file
+function LoadingFallback() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <div className="text-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function StoryGatheringPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <StoryGatheringContent />
+    </Suspense>
   );
 } 

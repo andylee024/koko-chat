@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { ImageIcon, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { uploadImageToStorage } from '@/utils/supabase_utils';
+import Image from 'next/image';
+
+// TODO: Add database image upload
+// import { uploadImageToStorage } from '@/utils/supabase_utils';
 
 interface ImagePreview {
   file: File;
@@ -14,7 +16,7 @@ interface StoryImageUploadProps {
   onImagesUploaded: () => void;
 }
 
-export default function StoryImageUpload({ userId, onImagesUploaded }: StoryImageUploadProps) {
+export default function StoryImageUpload({ onImagesUploaded }: StoryImageUploadProps) {
   const [images, setImages] = useState<ImagePreview[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -68,9 +70,11 @@ export default function StoryImageUpload({ userId, onImagesUploaded }: StoryImag
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {images.map((image, index) => (
             <div key={index} className="relative group">
-              <img
+              <Image
                 src={image.preview}
                 alt={`Upload preview ${index + 1}`}
+                width={128}
+                height={128}
                 className="w-full h-32 object-cover rounded-lg"
               />
               <button

@@ -10,8 +10,12 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-console.log('supabaseUrl', supabaseUrl);
-console.log('supabaseKey', supabaseKey);
+
+// Add type checking and throw error if env vars are missing
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing environment variables for Supabase');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function WelcomePage() {
@@ -45,14 +49,17 @@ export default function WelcomePage() {
     <div className="min-h-screen bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-400 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Welcome to Koko's Storybook</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Welcome to Kokos Storybook</CardTitle>
           <CardDescription className="text-center">
             Help us create a magical storybook for an unborn niece
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-sm text-gray-600">
-            You're about to embark on a wonderful journey to create a unique storybook filled with love, memories, and wishes for a special little one. Your stories, anecdotes, and images will be woven together to create a cherished keepsake.
+            Lets create a special book for Koko
+          </p>
+          <p className="text-sm text-gray-600">
+            We&apos;re collecting stories and photos
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
