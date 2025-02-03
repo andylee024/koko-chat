@@ -1,13 +1,11 @@
 "use client";
 
-import { ImageIcon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useChat } from 'ai/react';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { createNewConversation, fetchUserInfo, saveConversation } from '@/utils/supabase_utils';
 import StoryPrompts from './StoryPrompts';
@@ -20,6 +18,11 @@ interface Message {
   content: string;
 }
 
+interface UserInfo {
+  name: string;
+  relationship: string;
+}
+
 interface ChatProps {
   userId: string;
   onStorySubmitted: () => void;
@@ -28,12 +31,10 @@ interface ChatProps {
 export default function Chat({ userId, onStorySubmitted }: ChatProps) {
 
   // setup user state
-  const [userInfo, setUserInfo] = useState<any>(fetchUserInfo(userId));
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   // setup chatbot state
-  const [assistantPrompt, setAssistantPrompt] = useState<Message[]>(createAssistantPrompt(userInfo));
-  const [showPrompts, setShowPrompts] = useState(true);
+  // const [showPrompts, setShowPrompts] = useState(true);
   const { messages, input, handleInputChange, handleSubmit: handleChatSubmit, setMessages, reload } = useChat({
     initialMessages: []
   });
@@ -48,8 +49,6 @@ export default function Chat({ userId, onStorySubmitted }: ChatProps) {
       const { conversation_id } = await createNewConversation(userId);
       const prompt = createAssistantPrompt(userData);
 
-      setUserInfo(userData);
-      setAssistantPrompt(prompt);
       setMessages(prompt);
       setConversationId(conversation_id); // Set the conversationId state
       reload();
@@ -163,13 +162,13 @@ export default function Chat({ userId, onStorySubmitted }: ChatProps) {
       </div>
 
       {/* Story Prompts Sidebar */}
-      {showPrompts && <StoryPrompts onQuestionSelect={handleQuestionSelect} />}
+      {<StoryPrompts onQuestionSelect={handleQuestionSelect} />}
     </Card>
   );
 }
 
 // Utility Functions
-function createAssistantPrompt(userInfo: any): Message[] {
+function createAssistantPrompt(userInfo: UserInfo): Message[] {
   if (!userInfo) return [];
 
   const prompt : Message[] = [

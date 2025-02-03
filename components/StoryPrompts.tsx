@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Heart, Star, Coffee, LineChart, ChevronRight, LightbulbIcon, ImageIcon } from 'lucide-react'
+import { Heart, Star, Coffee, LineChart, ChevronRight } from 'lucide-react'
 import { cn } from "@/lib/utils";
 
 type Theme = {
@@ -73,6 +73,7 @@ const StoryPrompts: React.FC<StoryPromptsProps> = ({ onQuestionSelect }) => {
 
       <ScrollArea className="h-full">
         <div className="p-4 space-y-4">
+
           {/* Theme Selection */}
           <div className="flex flex-col gap-2">
             {themes.map((theme) => {
