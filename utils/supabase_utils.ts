@@ -7,27 +7,15 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 
-export async function fetchUserInfo(userId: string) {
+export async function fetchUserByEmail(email: string) {
   const { data, error } = await supabaseClient
     .from('users')
     .select('*')
-    .eq('user_id', userId)
+    .eq('email', email)
     .single();
 
   if (error) {
     console.error('Error fetching user info:', error);
-    return null;
-  }
-  return data;
-}
-
-export async function saveConversation(conversationId: string, conversationHistory: string) {
-  const { data, error } = await supabaseClient
-    .from('conversations')
-    .upsert({ conversation_id: conversationId, conversation_history: conversationHistory }, { onConflict: 'conversation_id' });
-
-  if (error) {
-    console.error('Error saving conversation history:', error);
     return null;
   }
   return data;
@@ -46,6 +34,19 @@ export async function createNewConversation(userId: string) {
   }
   return data;
 }
+
+export async function saveConversation(conversationId: string, conversationHistory: string) {
+  const { data, error } = await supabaseClient
+    .from('conversations')
+    .upsert({ conversation_id: conversationId, conversation_history: conversationHistory }, { onConflict: 'conversation_id' });
+
+  if (error) {
+    console.error('Error saving conversation history:', error);
+    return null;
+  }
+  return data;
+}
+
 
 export async function uploadImageToStorage(file: File, userId: string) {
   try {

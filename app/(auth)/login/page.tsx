@@ -23,7 +23,6 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
-      // Successful login will automatically redirect via useAuth hook
     } catch (error: any) {
       setError(error.message);
     } finally {

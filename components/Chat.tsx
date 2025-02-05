@@ -7,8 +7,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-import { createNewConversation, fetchUserInfo, saveConversation } from '@/utils/supabase_utils';
 import StoryPrompts from './StoryPrompts';
+import { createNewConversation, fetchUserByEmail, saveConversation } from '@/utils/supabase_utils';
+import { useAuth } from '@/utils/supabase_auth';
 
 
 // Interfaces
@@ -24,12 +25,13 @@ interface UserInfo {
 }
 
 interface ChatProps {
-  userId: string;
   onStorySubmitted: () => void;
 }
 
-export default function Chat({ userId, onStorySubmitted }: ChatProps) {
-
+export default function Chat({ onStorySubmitted }: ChatProps) {
+  // Add auth context
+  const { user } = useAuth();
+  
   // setup user state
   const [conversationId, setConversationId] = useState<string | null>(null);
 
@@ -42,19 +44,21 @@ export default function Chat({ userId, onStorySubmitted }: ChatProps) {
   // setup UI state
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // First useEffect - update chatbot when userId changes
+  // First useEffect - update chatbot when user changes
   useEffect(() => {
-    const initializeWithUserId = async () => {
-      const userData = await fetchUserInfo(userId);
-      const { conversation_id } = await createNewConversation(userId);
+    const initializeWithUser = async () => {
+      if (!user?.email) return;
+      
+      const userData = await fetchUserByEmail(user.email);
+      const { conversation_id } = await createNewConversation(user.id);
       const prompt = createAssistantPrompt(userData);
 
       setMessages(prompt);
-      setConversationId(conversation_id); // Set the conversationId state
+      setConversationId(conversation_id);
       reload();
     };
-    initializeWithUserId();
-  }, [userId]);
+    initializeWithUser();
+  }, [user]);
 
   // Second useEffect - scroll to bottom of chat
   useEffect(() => {

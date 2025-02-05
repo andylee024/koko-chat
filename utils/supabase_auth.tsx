@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Handle user authentication state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Sign up a new user
   const signUp = async (email: string, password: string, userData: any) => {
     const { error: authError } = await supabase.auth.signUp({
       email,
@@ -41,18 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (authError) throw authError;
 
-    // Create user profile in public users table
     const { error: profileError } = await supabase
       .from('users')
       .insert([{ 
         ...userData,
         email,
-        auth_id: user?.id 
       }]);
 
     if (profileError) throw profileError;
   };
 
+  // Sign in an existing user
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -63,9 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/story_gathering');
   };
 
+  // Sign out the current user
   const signOut = async () => {
     await supabase.auth.signOut();
-    router.push('/welcome');
+    router.push('/');
   };
 
   return (
@@ -75,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Custom hook to use the AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within AuthProvider');

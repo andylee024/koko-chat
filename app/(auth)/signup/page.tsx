@@ -11,7 +11,6 @@ import { useAuth } from '@/utils/supabase_auth';
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +27,6 @@ export default function SignupPage() {
       await signUp(email, password, {
         name,
         relationship,
-        phone
       });
       alert('Please check your email to verify your account!');
     } catch (error: any) {
@@ -65,21 +63,11 @@ export default function SignupPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="relationship">Relationship to Parents</Label>
+            <Label htmlFor="relationship">Relationship to Angel and Frank</Label>
             <Input 
               id="relationship" 
               value={relationship} 
               onChange={(e) => setRelationship(e.target.value)} 
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input 
-              id="phone" 
-              type="tel" 
-              value={phone} 
-              onChange={(e) => setPhone(e.target.value)} 
               required
             />
           </div>

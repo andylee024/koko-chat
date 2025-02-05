@@ -1,16 +1,18 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 import Chat from "../../components/Chat";
-import { useSearchParams, useRouter } from 'next/navigation';
 import StoryImageUpload from "../../components/ImageDrop";
 import SubmissionPanel from "@/components/SubmissionPanel";
 
+import { useAuth } from '@/utils/supabase_auth';
+
 // Create a component that uses searchParams
 function StoryGatheringContent() {
-  const searchParams = useSearchParams();
+  const { user } = useAuth();
   const router = useRouter();
-  const userId = searchParams.get('user_id');
   
   const [submissionStatus, setSubmissionStatus] = useState({
     hasStory: false,
@@ -18,10 +20,11 @@ function StoryGatheringContent() {
   });
 
   useEffect(() => {
-    if (userId) {
-      console.log('search_params user_id', userId);
+    if (!user) {
+      router.push('/login');
+      return;
     }
-  }, [userId]);
+  }, [user, router]);
 
   const handleFinalSubmit = () => {
     // You might want to do any final data saving here
@@ -46,9 +49,8 @@ function StoryGatheringContent() {
               {"Andy's AI interviewer will help collect your memories into a children's book for Koko."}
             </p>
           </div>
-          {userId ? (
+          {user ? (
             <Chat 
-              userId={userId} 
               onStorySubmitted={() => setSubmissionStatus(prev => ({ ...prev, hasStory: true }))} 
             />
           ) : (
@@ -65,9 +67,8 @@ function StoryGatheringContent() {
             </p>
           </div>
           <div className="p-6">
-            {userId ? (
+            {user ? (
               <StoryImageUpload 
-                userId={userId}
                 onImagesUploaded={() => setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }))} 
               />
             ) : (
