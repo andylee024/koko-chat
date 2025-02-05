@@ -23,8 +23,12 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -37,7 +41,7 @@ export default function LoginPage() {
           Welcome Back
         </CardTitle>
         <CardDescription className="text-center">
-          Sign in to continue to Koko's Storybook
+          Sign in to continue to Koko&apos;s Storybook
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -82,7 +86,7 @@ export default function LoginPage() {
             asChild
           >
             <Link href="/signup">
-              Don't have an account? Sign up
+              Don&apos;t have an account? Sign up
             </Link>
           </Button>
         </div>

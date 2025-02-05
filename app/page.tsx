@@ -9,7 +9,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <h1 className="text-5xl font-bold text-white">
-            Koko's Storybook
+            Koko&apos;s Storybook
           </h1>
           <p className="text-xl text-white">
             Help create a magical collection of memories and stories for baby Koko

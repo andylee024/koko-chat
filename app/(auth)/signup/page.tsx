@@ -29,8 +29,12 @@ export default function SignupPage() {
         relationship,
       });
       alert('Please check your email to verify your account!');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -40,7 +44,7 @@ export default function SignupPage() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">
-          Join Koko's Storybook
+          Join Koko&apos;s Storybook
         </CardTitle>
         <CardDescription className="text-center">
           Create an account to share your stories

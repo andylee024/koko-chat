@@ -15,13 +15,8 @@ import { useAuth } from '@/utils/supabase_auth';
 // Interfaces
 interface Message {
   id: string;
-  role: 'system' | 'user' | 'assistant' | 'data'; // Define the allowed roles
+  role: 'system' | 'user' | 'assistant' | 'data';
   content: string;
-}
-
-interface UserInfo {
-  name: string;
-  relationship: string;
 }
 
 interface ChatProps {
