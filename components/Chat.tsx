@@ -204,8 +204,7 @@ function createAssistantPrompt(name: string, relationship: string): Message[] {
       - Say hello to the user by name
       - Introduce yourself as storybot, an AI assistant helping Andy build the childrens story
       - Tell the user about the project, who its for, what its about, and how they can help
-      - Tell the user that whenever they feel like they've shared enough stories and images, they can exit anytime by closing link  
-      - use newlines to break up the text
+      - Tell the user that whenever they feel like they've shared enough stories and images, they can click submit to finish
       `,
       id: 'system-2'
     }
