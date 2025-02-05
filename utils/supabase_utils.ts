@@ -6,6 +6,19 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
+export async function fetchUserById(userId: string) {
+  const { data, error } = await supabaseClient
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user info:', error);
+    return null;
+  }
+  return data;
+}
 
 export async function fetchUserByEmail(email: string) {
   const { data, error } = await supabaseClient
@@ -25,7 +38,7 @@ export async function createNewConversation(userId: string) {
   const { data, error } = await supabaseClient
     .from('conversations')
     .insert([{ user_id: userId }])
-    .select('conversation_id')
+    .select('id')
     .single();
 
   if (error) {

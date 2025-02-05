@@ -50,8 +50,10 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
       if (!user?.email) return;
       
       const userData = await fetchUserByEmail(user.email);
+
+      console.log(userData);
       const { conversation_id } = await createNewConversation(user.id);
-      const prompt = createAssistantPrompt(userData);
+      const prompt = createAssistantPrompt(userData.name, userData.relationship);
 
       setMessages(prompt);
       setConversationId(conversation_id);
@@ -172,9 +174,7 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
 }
 
 // Utility Functions
-function createAssistantPrompt(userInfo: UserInfo): Message[] {
-  if (!userInfo) return [];
-
+function createAssistantPrompt(name: string, relationship: string): Message[] {
   const prompt : Message[] = [
     {
       role: 'system',
@@ -197,8 +197,8 @@ function createAssistantPrompt(userInfo: UserInfo): Message[] {
     {
       role: 'system',
       content: `
-      - The user's name is ${userInfo.name}
-      - The user's relationship to parents is ${userInfo.relationship}
+      - The user's name is ${name}
+      - The user's relationship to parents is ${relationship}
 
       INSTRUCTIONS
       - Say hello to the user by name
