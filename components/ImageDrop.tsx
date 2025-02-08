@@ -12,7 +12,6 @@ interface ImagePreview {
 }
 
 interface StoryImageUploadProps {
-  userId: string;
   onImagesUploaded: () => void;
 }
 

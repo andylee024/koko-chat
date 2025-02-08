@@ -7,29 +7,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-import { createNewConversation, fetchUserInfo, saveConversation } from '@/utils/supabase_utils';
 import StoryPrompts from './StoryPrompts';
+import { createNewConversation, fetchUserByEmail, saveConversation } from '@/utils/supabase_utils';
+import { useAuth } from '@/utils/supabase_auth';
 
 
 // Interfaces
 interface Message {
   id: string;
-  role: 'system' | 'user' | 'assistant' | 'data'; // Define the allowed roles
+  role: 'system' | 'user' | 'assistant' | 'data';
   content: string;
 }
 
-interface UserInfo {
-  name: string;
-  relationship: string;
-}
-
 interface ChatProps {
-  userId: string;
   onStorySubmitted: () => void;
 }
 
-export default function Chat({ userId, onStorySubmitted }: ChatProps) {
-
+export default function Chat({ onStorySubmitted }: ChatProps) {
+  // Add auth context
+  const { user } = useAuth();
+  
   // setup user state
   const [conversationId, setConversationId] = useState<string | null>(null);
 
@@ -42,19 +39,23 @@ export default function Chat({ userId, onStorySubmitted }: ChatProps) {
   // setup UI state
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // First useEffect - update chatbot when userId changes
+  // First useEffect - update chatbot when user changes
   useEffect(() => {
-    const initializeWithUserId = async () => {
-      const userData = await fetchUserInfo(userId);
-      const { conversation_id } = await createNewConversation(userId);
-      const prompt = createAssistantPrompt(userData);
+    const initializeWithUser = async () => {
+      if (!user?.email) return;
+      
+      const userData = await fetchUserByEmail(user.email);
+
+      console.log(userData);
+      const { conversation_id } = await createNewConversation(user.id);
+      const prompt = createAssistantPrompt(userData.name, userData.relationship);
 
       setMessages(prompt);
-      setConversationId(conversation_id); // Set the conversationId state
+      setConversationId(conversation_id);
       reload();
     };
-    initializeWithUserId();
-  }, [userId]);
+    initializeWithUser();
+  }, [user]);
 
   // Second useEffect - scroll to bottom of chat
   useEffect(() => {
@@ -168,9 +169,7 @@ export default function Chat({ userId, onStorySubmitted }: ChatProps) {
 }
 
 // Utility Functions
-function createAssistantPrompt(userInfo: UserInfo): Message[] {
-  if (!userInfo) return [];
-
+function createAssistantPrompt(name: string, relationship: string): Message[] {
   const prompt : Message[] = [
     {
       role: 'system',
@@ -193,15 +192,14 @@ function createAssistantPrompt(userInfo: UserInfo): Message[] {
     {
       role: 'system',
       content: `
-      - The user's name is ${userInfo.name}
-      - The user's relationship to parents is ${userInfo.relationship}
+      - The user's name is ${name}
+      - The user's relationship to parents is ${relationship}
 
       INSTRUCTIONS
       - Say hello to the user by name
       - Introduce yourself as storybot, an AI assistant helping Andy build the childrens story
       - Tell the user about the project, who its for, what its about, and how they can help
-      - Tell the user that whenever they feel like they've shared enough stories and images, they can exit anytime by closing link  
-      - use newlines to break up the text
+      - Tell the user that whenever they feel like they've shared enough stories and images, they can click submit to finish
       `,
       id: 'system-2'
     }
