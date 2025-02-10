@@ -9,10 +9,10 @@ import SubmissionPanel from "@/components/SubmissionPanel";
 
 import { useAuth } from '@/utils/supabase_auth';
 
-// Create a component that uses searchParams
 function StoryGatheringContent() {
   const { user } = useAuth();
   const router = useRouter();
+  const [collectedImages, setCollectedImages] = useState<File[]>([]);
   
   const [submissionStatus, setSubmissionStatus] = useState({
     hasStory: false,
@@ -52,6 +52,7 @@ function StoryGatheringContent() {
           {user ? (
             <Chat 
               onStorySubmitted={() => setSubmissionStatus(prev => ({ ...prev, hasStory: true }))} 
+              collectedImages={collectedImages}
             />
           ) : (
             <div>Loading...</div>
@@ -69,7 +70,8 @@ function StoryGatheringContent() {
           <div className="p-6">
             {user ? (
               <StoryImageUpload 
-                onImagesUploaded={() => setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }))} 
+                onImagesUploaded={() => setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }))}
+                onImagesCollected={setCollectedImages}
               />
             ) : (
               <div className="text-center py-4 text-gray-500">Loading image upload...</div>

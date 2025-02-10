@@ -3,9 +3,6 @@ import { useDropzone } from 'react-dropzone';
 import { ImageIcon, X } from 'lucide-react';
 import Image from 'next/image';
 
-// TODO: Add database image upload
-// import { uploadImageToStorage } from '@/utils/supabase_utils';
-
 interface ImagePreview {
   file: File;
   preview: string;
@@ -13,25 +10,27 @@ interface ImagePreview {
 
 interface StoryImageUploadProps {
   onImagesUploaded: () => void;
+  onImagesCollected: (files: File[]) => void;
 }
 
-export default function StoryImageUpload({ onImagesUploaded }: StoryImageUploadProps) {
+export default function StoryImageUpload({ onImagesUploaded, onImagesCollected }: StoryImageUploadProps) {
   const [images, setImages] = useState<ImagePreview[]>([]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const newImages = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
     }));
+
     setImages(prev => {
       const updatedImages = [...prev, ...newImages];
-      // Trigger checkbox when first image is added
       if (prev.length === 0 && updatedImages.length > 0) {
         onImagesUploaded();
+        onImagesCollected(updatedImages.map(img => img.file));
       }
       return updatedImages;
     });
-  }, [onImagesUploaded]);
+  }, [onImagesUploaded, onImagesCollected]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
