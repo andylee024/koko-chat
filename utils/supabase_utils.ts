@@ -54,7 +54,8 @@ export async function saveConversation(conversationId: string, conversationHisto
     .upsert(
       { 
         id: conversationId, 
-        conversation_history: conversationHistory 
+        conversation_history: conversationHistory,
+        updated_at: new Date().toISOString()
       }, 
       { onConflict: 'id' }
     );
@@ -81,12 +82,12 @@ export async function uploadImageToStorage(file: File, userId: string) {
 
     if (error) throw error;
 
-    // Get the public URL
     const { data: { publicUrl } } = supabaseClient
       .storage
       .from('story-images')
       .getPublicUrl(fileName);
 
+    console.log('Image successfully uploaded:', publicUrl);
     return publicUrl;
 
   } catch (error) {
