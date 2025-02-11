@@ -114,7 +114,7 @@ export async function getConversationByUserId(userId: string) {
 
 export async function saveImageToDatabase(userId: string, imageUrl: string) {
   const { data, error } = await supabaseClient
-    .from('user_images')
+    .from('images')
     .insert([
       { 
         user_id: userId,

@@ -34,6 +34,7 @@ function StoryGatheringContent() {
       try {
         for (const image of collectedImages) {
           console.log('Processing image:', image.name);
+
           // Upload to storage and get URL
           const publicUrl = await uploadImageToStorage(image, user.id);
           console.log('Got public URL:', publicUrl);
