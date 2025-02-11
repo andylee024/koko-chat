@@ -28,23 +28,32 @@ function StoryGatheringContent() {
   }, [user, router]);
 
   const handleFinalSubmit = async () => {
+    console.log('Starting final submit with images:', collectedImages.length);
+    
     if (user && collectedImages.length > 0) {
       try {
         for (const image of collectedImages) {
+          console.log('Processing image:', image.name);
           // Upload to storage and get URL
           const publicUrl = await uploadImageToStorage(image, user.id);
+          console.log('Got public URL:', publicUrl);
+          
           if (!publicUrl) throw new Error('Failed to get public URL');
           
           // Save URL to database
-          await saveImageToDatabase(user.id, publicUrl);
+          const result = await saveImageToDatabase(user.id, publicUrl);
+          console.log('Saved to database:', result);
         }
       } catch (error) {
         console.error('Error processing images:', error);
+        return; // Don't redirect if there's an error
       }
     }
     
     router.push('/thank-you');
   };
+
+  console.log('Current collected images:', collectedImages.length);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -84,8 +93,14 @@ function StoryGatheringContent() {
           <div className="p-6">
             {user ? (
               <StoryImageUpload 
-                onImagesUploaded={() => setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }))}
-                onImagesCollected={setCollectedImages}
+                onImagesUploaded={() => {
+                  console.log('Images uploaded callback triggered');
+                  setSubmissionStatus(prev => ({ ...prev, hasPhotos: true }));
+                }}
+                onImagesCollected={(files) => {
+                  console.log('Collecting images:', files.length);
+                  setCollectedImages(files);
+                }}
               />
             ) : (
               <div className="text-center py-4 text-gray-500">Loading image upload...</div>
