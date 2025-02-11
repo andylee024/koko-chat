@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 import StoryPrompts from './StoryPrompts';
-import { createNewConversation, fetchUserById, getConversationByUserId, saveConversation, uploadImageToStorage, saveImageToDatabase } from '@/utils/supabase_utils';
+import { createNewConversation, fetchUserById, getConversationByUserId, saveConversation} from '@/utils/supabase_utils';
 import { useAuth } from '@/utils/supabase_auth';
 
 
@@ -21,40 +21,31 @@ interface Message {
 
 interface ChatProps {
   onStorySubmitted: () => void;
-  collectedImages: File[];
 }
 
 export default function Chat({ onStorySubmitted }: ChatProps) {
-  // Add auth context
   const { user } = useAuth();
-  
-  // setup user state
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [collectedImages, setCollectedImages] = useState<File[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // setup chatbot state
-  // const [showPrompts, setShowPrompts] = useState(true);
   const { messages, input, handleInputChange, handleSubmit: handleChatSubmit, setMessages, reload } = useChat({
     initialMessages: []
   });
 
-  // setup UI state
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // First useEffect - update chatbot when user changes
   useEffect(() => {
     const initializeChat = async () => {
-      if (!user?.id) return;
+      if (!user?.id || !isInitializing) return;
       
       try {
-        // Get existing conversation using user ID
+        setIsInitializing(false);
         const existingConversation = await getConversationByUserId(user.id);
         const userData = await fetchUserById(user.id);
 
         if (existingConversation) {
-          console.log('Found existing conversation:', existingConversation);
           setConversationId(existingConversation.id);
-          
           setMessages([
             {
               id: 'system-context',
@@ -63,7 +54,6 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
             }
           ]);
         } else {
-          console.log('Creating new conversation for user:', userData);
           const newConversation = await createNewConversation(user.id);
           if (newConversation) {
             setConversationId(newConversation.id);
@@ -74,11 +64,12 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
         reload();
       } catch (error) {
         console.error('Error initializing chat:', error);
+        setIsInitializing(true);
       }
     };
 
     initializeChat();
-  }, [user]);
+  }, [user?.id]);
 
   // Second useEffect - scroll to bottom of chat
   useEffect(() => {
@@ -99,27 +90,9 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
     }
   }, [messages]);
 
-  // Wrap the chat submit handler to check for first message
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Upload images if any
-    if (user && collectedImages.length > 0) {
-      try {
-        for (const image of collectedImages) {
-          // Upload to storage and get URL
-          const publicUrl = await uploadImageToStorage(image, user.id);
-          
-          // Save URL to database
-          await saveImageToDatabase(user.id, publicUrl);
-        }
-        setCollectedImages([]);
-      } catch (error) {
-        console.error('Error processing images:', error);
-      }
-    }
-    
-    // Regular chat submission
     if (messages.filter(m => m.role === 'user').length === 0 && input.trim()) {
       onStorySubmitted();
     }

@@ -101,14 +101,15 @@ export async function getConversationByUserId(userId: string) {
     .from('conversations')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .order('created_at', { ascending: false })  // Get most recent first
+    .limit(1);  // Get only one conversation
 
   if (error) {
     console.error('Error fetching conversation:', error);
     return null;
   }
 
-  return data;
+  return data?.[0] || null;  // Return first conversation or null
 }
 
 export async function saveImageToDatabase(userId: string, imageUrl: string) {

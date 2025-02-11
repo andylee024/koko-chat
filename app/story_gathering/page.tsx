@@ -7,6 +7,7 @@ import Chat from "../../components/Chat";
 import StoryImageUpload from "../../components/ImageDrop";
 import SubmissionPanel from "@/components/SubmissionPanel";
 
+import { uploadImageToStorage, saveImageToDatabase } from '@/utils/supabase_utils';
 import { useAuth } from '@/utils/supabase_auth';
 
 function StoryGatheringContent() {
@@ -26,8 +27,22 @@ function StoryGatheringContent() {
     }
   }, [user, router]);
 
-  const handleFinalSubmit = () => {
-    // You might want to do any final data saving here
+  const handleFinalSubmit = async () => {
+    if (user && collectedImages.length > 0) {
+      try {
+        for (const image of collectedImages) {
+          // Upload to storage and get URL
+          const publicUrl = await uploadImageToStorage(image, user.id);
+          if (!publicUrl) throw new Error('Failed to get public URL');
+          
+          // Save URL to database
+          await saveImageToDatabase(user.id, publicUrl);
+        }
+      } catch (error) {
+        console.error('Error processing images:', error);
+      }
+    }
+    
     router.push('/thank-you');
   };
 
@@ -52,7 +67,6 @@ function StoryGatheringContent() {
           {user ? (
             <Chat 
               onStorySubmitted={() => setSubmissionStatus(prev => ({ ...prev, hasStory: true }))} 
-              collectedImages={collectedImages}
             />
           ) : (
             <div>Loading...</div>
