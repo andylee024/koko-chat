@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 import StoryPrompts from './StoryPrompts';
-import { createNewConversation, fetchUserById, getConversationByUserId, saveConversation} from '@/utils/supabase_utils';
+import { createNewConversation, fetchUserById, saveConversation} from '@/utils/supabase_utils';
 import { useAuth } from '@/utils/supabase_auth';
 
 
@@ -38,29 +38,19 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
   useEffect(() => {
     const initializeChat = async () => {
       if (!user?.id || !isInitializing) return;
-      
+
       try {
         setIsInitializing(false);
-        const existingConversation = await getConversationByUserId(user.id);
         const userData = await fetchUserById(user.id);
 
-        if (existingConversation) {
-          setConversationId(existingConversation.id);
-          setMessages([
-            {
-              id: 'system-context',
-              role: 'system',
-              content: `Previous conversation history:\n${existingConversation.conversation_history}\n\nContinue the conversation naturally.`
-            }
-          ]);
-        } else {
-          const newConversation = await createNewConversation(user.id);
-          if (newConversation) {
-            setConversationId(newConversation.id);
-            const prompt = createAssistantPrompt(userData.name, userData.relationship);
-            setMessages(prompt);
-          }
+        // Always create a new conversation
+        const newConversation = await createNewConversation(user.id);
+        if (newConversation) {
+          setConversationId(newConversation.id);
+          const prompt = createAssistantPrompt(userData.name, userData.relationship);
+          setMessages(prompt);
         }
+
         reload();
       } catch (error) {
         console.error('Error initializing chat:', error);
