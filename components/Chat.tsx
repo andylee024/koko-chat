@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 import StoryPrompts from './StoryPrompts';
-import { createNewConversation, fetchUserByEmail, saveConversation } from '@/utils/supabase_utils';
+import { createNewConversation, fetchUserById, getConversationByUserId, saveConversation} from '@/utils/supabase_utils';
 import { useAuth } from '@/utils/supabase_auth';
 
 
@@ -24,38 +24,52 @@ interface ChatProps {
 }
 
 export default function Chat({ onStorySubmitted }: ChatProps) {
-  // Add auth context
   const { user } = useAuth();
-  
-  // setup user state
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // setup chatbot state
-  // const [showPrompts, setShowPrompts] = useState(true);
   const { messages, input, handleInputChange, handleSubmit: handleChatSubmit, setMessages, reload } = useChat({
     initialMessages: []
   });
 
-  // setup UI state
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // First useEffect - update chatbot when user changes
   useEffect(() => {
-    const initializeWithUser = async () => {
-      if (!user?.email) return;
+    const initializeChat = async () => {
+      if (!user?.id || !isInitializing) return;
       
-      const userData = await fetchUserByEmail(user.email);
+      try {
+        setIsInitializing(false);
+        const existingConversation = await getConversationByUserId(user.id);
+        const userData = await fetchUserById(user.id);
 
-      console.log(userData);
-      const { conversation_id } = await createNewConversation(user.id);
-      const prompt = createAssistantPrompt(userData.name, userData.relationship);
-
-      setMessages(prompt);
-      setConversationId(conversation_id);
-      reload();
+        if (existingConversation) {
+          setConversationId(existingConversation.id);
+          setMessages([
+            {
+              id: 'system-context',
+              role: 'system',
+              content: `Previous conversation history:\n${existingConversation.conversation_history}\n\nContinue the conversation naturally.`
+            }
+          ]);
+        } else {
+          const newConversation = await createNewConversation(user.id);
+          if (newConversation) {
+            setConversationId(newConversation.id);
+            const prompt = createAssistantPrompt(userData.name, userData.relationship);
+            setMessages(prompt);
+          }
+        }
+        reload();
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+        setIsInitializing(true);
+      }
     };
-    initializeWithUser();
-  }, [user]);
+
+    initializeChat();
+  }, [user?.id]);
 
   // Second useEffect - scroll to bottom of chat
   useEffect(() => {
@@ -76,11 +90,9 @@ export default function Chat({ onStorySubmitted }: ChatProps) {
     }
   }, [messages]);
 
-  // Wrap the chat submit handler to check for first message
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // If this is the first user message, trigger the checkbox
     if (messages.filter(m => m.role === 'user').length === 0 && input.trim()) {
       onStorySubmitted();
     }
